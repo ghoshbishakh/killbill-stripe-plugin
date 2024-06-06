@@ -31,6 +31,7 @@ import com.google.common.collect.ImmutableMap;
 import com.stripe.Stripe;
 import com.stripe.exception.ApiException;
 import com.stripe.exception.StripeException;
+import com.stripe.model.Balance;
 import com.stripe.model.StripeObjectInterface;
 import com.stripe.net.ApiResource;
 import com.stripe.net.RequestOptions;
@@ -64,12 +65,11 @@ public class StripeHealthcheck implements Healthcheck {
         // Found this endpoint by cURLing random urls - let's hope it's stable :-)
         final String url = String.format("%s%s", Stripe.getApiBase(), "/healthcheck");
         try {
-            ApiResource.request(ApiResource.RequestMethod.GET,
-                                url,
-                                ImmutableMap.<String, Object>of(),
-                                StripeHealthcheckResponse.class,
-                                requestOptions);
-            return HealthStatus.healthy("Stripe OK");
+            Balance balance = Balance.retrieve();
+            if(balance != null) {
+                return HealthStatus.healthy("Stripe OK");
+            }
+            return HealthStatus.unHealthy("Stripe error: " + "Balance object null");
         } catch (final ApiException e) { // Not a JSON object anymore...
             if (e.getStatusCode() == 200) {
                 return HealthStatus.healthy("Stripe OK");

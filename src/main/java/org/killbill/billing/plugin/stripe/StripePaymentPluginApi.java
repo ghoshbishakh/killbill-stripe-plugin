@@ -1046,16 +1046,9 @@ public class StripePaymentPluginApi extends PluginPaymentPluginApi<StripeRespons
     private Charge getLastCharge(@Nullable final PaymentIntent stripePaymentIntent,
                                  final Map<String, Object> params,
                                  final RequestOptions requestOptions) {
-        if (stripePaymentIntent == null || stripePaymentIntent.getCharges() == null) {
+        if (stripePaymentIntent == null) {
             return null;
         }
-
-        Charge lastCharge = null;
-        for (final Charge charge : stripePaymentIntent.getCharges().autoPagingIterable(params, requestOptions)) {
-            if (lastCharge == null || lastCharge.getCreated() < charge.getCreated()) {
-                lastCharge = charge;
-            }
-        }
-        return lastCharge;
+        return stripePaymentIntent.getLatestChargeObject();
     }
 }
